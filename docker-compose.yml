@@ -121,6 +121,7 @@ services:
       - "55001:55000"
     volumes:
       - wzh_data:/var/ossec/data
+      - wzh_logs:/var/ossec/logs
       - ./docker/wzh/config/ossec.conf:/var/ossec/etc/ossec.conf:ro
       - ./ca:/opt/rsd/certs/ca:ro
     networks:
@@ -149,6 +150,7 @@ services:
       - EF_LICENSE_ACCEPTED=true
     volumes:
       - efw_data:/opt/rsd/data
+      - efw_logs:/opt/rsd/logs
       - ./docker/efw/config/elastiflow.yml:/opt/rsd/config/elastiflow.yml:ro
       - ./ca:/opt/rsd/certs/ca:ro
     networks:
