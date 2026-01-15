@@ -1,0 +1,13 @@
+server.name: "rsd-kibana"
+server.host: "0.0.0.0"
+server.ssl.enabled: true
+server.ssl.certificate: /opt/rsd/certs/kbn/kbn.crt
+server.ssl.key: /opt/rsd/certs/kbn/kbn.key
+
+elasticsearch.hosts: ["https://rsd-els:9200"]
+elasticsearch.username: "kibana_system"
+elasticsearch.password: "${ELASTIC_PASSWORD}"
+elasticsearch.ssl.certificateAuthorities: [ "/opt/rsd/certs/ca/ca.crt" ]
+elasticsearch.ssl.verificationMode: certificate
+
+monitoring.ui.container.elasticsearch.enabled: true

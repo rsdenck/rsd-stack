@@ -1,0 +1,24 @@
+cluster.name: "rsd-cluster"
+node.name: "rsd-els-01"
+network.host: 0.0.0.0
+path.data: /opt/rsd/data
+path.logs: /opt/rsd/logs
+
+# Segurança TLS (Zero Trust)
+xpack.security.enabled: true
+xpack.security.http.ssl:
+  enabled: true
+  key: /opt/rsd/certs/els/els.key
+  certificate: /opt/rsd/certs/els/els.crt
+  certificate_authorities: [ "/opt/rsd/certs/ca/ca.crt" ]
+
+xpack.security.transport.ssl:
+  enabled: true
+  verification_mode: certificate
+  key: /opt/rsd/certs/els/els.key
+  certificate: /opt/rsd/certs/els/els.crt
+  certificate_authorities: [ "/opt/rsd/certs/ca/ca.crt" ]
+
+# JVM Settings
+bootstrap.memory_lock: false
+discovery.type: single-node

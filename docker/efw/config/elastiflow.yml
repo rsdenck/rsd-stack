@@ -1,0 +1,12 @@
+# Elastiflow Unified Collector Configuration
+elastiflow:
+  collector:
+    name: rsd-efw-01
+  elasticsearch:
+    hosts: ["https://rsd-els:9200"]
+    username: elastic
+    password: "${ELASTIC_PASSWORD}"
+    ssl:
+      enabled: true
+      ca: /opt/rsd/certs/ca/ca.crt
+      verify: true

@@ -1,0 +1,81 @@
+name: RSD-STACK-SOVEREIGN-BUILD
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+  id-token: write
+
+jobs:
+  deterministic-build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        service: [els, lgs, kbn, wzh, efw]
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install Tools (Syft, Cosign)
+        run: |
+          curl -sSfL https://raw.githubusercontent.com/anchore/syft/main/install.sh | sh -s -- -b /usr/local/bin
+          curl -sSfL https://github.com/sigstore/cosign/releases/latest/download/cosign-linux-amd64 -o /usr/local/bin/cosign
+          chmod +x /usr/local/bin/cosign
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Login to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build Deterministic Image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./docker/${{ matrix.service }}/Dockerfile
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}/rsd/${{ matrix.service }}:${{ github.ref_name }}
+            ghcr.io/${{ github.repository }}/rsd/${{ matrix.service }}:latest
+          build-args: |
+            BUILD_DATE=2026-01-14T00:00:00Z
+          labels: |
+            org.opencontainers.image.created=2026-01-14T00:00:00Z
+            org.opencontainers.image.revision=${{ github.sha }}
+
+      - name: Generate SBOM (CycloneDX)
+        run: |
+          syft ghcr.io/${{ github.repository }}/rsd/${{ matrix.service }}:${{ github.ref_name }} \
+            -o cyclonedx-json > security/sbom/${{ matrix.service }}-${{ github.ref_name }}.json
+
+      - name: Sign Image (Cosign Keyless)
+        run: |
+          cosign sign --yes \
+            ghcr.io/${{ github.repository }}/rsd/${{ matrix.service }}@${{ steps.build.outputs.digest }}
+
+      - name: Register Hash in Trust Registry
+        run: |
+          echo "${{ matrix.service }}:${{ steps.build.outputs.digest }}" >> security/trust/images.sha256
+
+      - name: Create Release Artifacts Bundle
+        run: |
+          tar -czf release-${{ matrix.service }}-${{ github.ref_name }}.tar.gz \
+            security/sbom/${{ matrix.service }}-${{ github.ref_name }}.json \
+            security/trust/images.sha256
+
+      - name: Commit and Push Trust Updates
+        run: |
+          git config --local user.email "action@github.com"
+          git config --local user.name "GitHub Action Builder"
+          git add security/trust/images.sha256 security/sbom/
+          git commit -m "chore: sovereign build artifacts for ${{ matrix.service }} [skip ci]" || echo "No changes"
+          git push origin main

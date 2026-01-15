@@ -1,0 +1,33 @@
+# RSD-STACK :: Git Ignore
+
+# Secrets & Environment
+.env
+.env.local
+*.env
+!.env.example
+
+# OS Files
+.DS_Store
+Thumbs.db
+
+# IDEs
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Docker Data (Avoid pushing local persistence)
+**/data/*
+**/logs/*
+!**/data/.gitkeep
+!**/logs/.gitkeep
+
+# Certificates (CA keys should NEVER be pushed to public repos)
+# Note: In this specific architecture, certs are part of the sovereign bundle, 
+# but in a real production repo, they would be managed via Vault/Secrets.
+# For this lab/release, we keep the provided certs but ignore potential new ones.
+# certs/**/*.key
+
+# Temp files
+**/tmp/*
+!**/tmp/.gitkeep
