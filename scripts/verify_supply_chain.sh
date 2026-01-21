@@ -25,8 +25,8 @@ fi
 
 # 2. Validar cada serviço
 for SVC in "${SERVICES[@]}"; do
-    IMAGE="ghcr.io/rsdenck/rsd-stack/rsd/$SVC:latest"
-    echo -n "Validando rsd/$SVC... "
+28→    IMAGE="rdenck/$SVC:latest"
+29→    echo -n "Validando rdenck/$SVC... "
 
     # A. Verificar Assinatura Cosign
     if ! cosign verify "$IMAGE" \

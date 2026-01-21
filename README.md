@@ -1,115 +1,55 @@
-# RSD-STACK :: Sovereign Observability & Security
+# RSD-STACK v2.0 (Enterprise Ready)
 
-[![Linux Compliance](https://img.shields.io/badge/Linux-100%25%20Compliant-green.svg)](RT-10.md)
-[![Deterministic Build](https://img.shields.io/badge/Build-Deterministic-blue.svg)](RT-11.md)
-[![Integrity](https://img.shields.io/badge/Integrity-SHA256%20Verified-gold.svg)](RT-12.md)
-[![CI/CD Ready](https://img.shields.io/badge/CI%2FCD-Ready%20(ALTA)-orange.svg)](RT-14.md)
+## Status: Produção Enterprise
+Esta stack representa uma solução completa de SIEM, Log Management e Observabilidade de Redes, desenhada para alta disponibilidade e segurança.
 
-A **RSD-STACK** é uma arquitetura de monitoramento de rede (Flows), segurança (Wazuh SIEM) e observabilidade (ELK) projetada para soberania de dados e máxima segurança.
+## Escopo Real da Stack
+- **Elasticsearch Cluster:** 3 nós (`els-nd01`, `els-nd02`, `els-nd03`) com suporte a quorum e persistência distribuída.
+- **Logstash HA:** Pipelines redundantes (`lgs-pl01`, `lgs-pl02`) para processamento de logs.
+- **Kibana UI:** Interface de visualização centralizada com RBAC.
+- **Wazuh HA:** SIEM/XDR com 2 Managers e Indexers em Alta Disponibilidade.
+- **ElasticFlow HA:** Coleta e análise de NetFlow/IPFIX em escala.
+- **Security:** Nginx Reverse Proxy com terminação TLS obrigatória.
 
-> [!WARNING]
-> **DOCKER DESKTOP ≠ PRODUÇÃO**
-> O Docker Desktop (Windows/Mac) deve ser utilizado **apenas para homologação e desenvolvimento**. Ambientes de produção **devem** utilizar Linux Nativo (Debian/Ubuntu/RHEL) para garantir performance, isolamento de kernel e estabilidade.
+## Pré-requisitos
+- **Docker:** v24.0.0+ e Docker Compose v2.20.0+
+- **Kubernetes:** v1.26+ (para deploy em cluster)
+- **Recursos Mínimos (LAB):** 16GB RAM, 4 CPUs
+- **Recursos Recomendados (PROD):** 64GB+ RAM, 16 CPUs, Armazenamento SSD/NVMe
 
----
+## Modos de Deploy
 
-## 1. Visão Geral da Stack
-
-A stack é composta por containers altamente endurecidos (Hardened) baseados em uma imagem comum (`rsd/base-runtime:12`):
-
-- **rsd-els**: Elasticsearch 8.13.4 (Data Lake)
-- **rsd-lgs**: Logstash 8.13.4 (Pipeline de Ingestão)
-- **rsd-kbn**: Kibana 8.13.4 (Visualização e SIEM)
-- **rsd-wzh**: Wazuh Manager 4.7.2 (Segurança de Endpoint)
-- **rsd-efw**: Elastiflow Collector 7.7.2 (Netflow/IPFIX)
-
----
-
-## 2. Requisitos Mínimos (Produção Linux)
-
-| Recurso | Requisito Mínimo | Recomendado |
-| :--- | :--- | :--- |
-| **Kernel** | 5.10+ | 6.x+ |
-| **Docker** | 24.0+ | 26.x+ |
-| **Compose** | V2.20+ | V2.24+ |
-| **CPU** | 4 Cores | 8+ Cores |
-| **RAM** | 16 GB | 32 GB |
-| **Disco** | 100 GB SSD | 500 GB+ NVMe |
-| **OS** | Debian 12 / Ubuntu 22.04 | Debian 12 (Pure) |
-
-**Configuração Crítica do Host:**
+### Docker Compose (On-Premise / Edge)
 ```bash
-# Necessário para o Elasticsearch
-sudo sysctl -w vm.max_map_count=262144
+cd deploy/docker
+docker compose up -d
 ```
 
----
-
-## 3. Estrutura de Diretórios
-
-```text
-.
-├── docker/                 # Definições de Dockerfiles por serviço
-│   ├── base-runtime/       # Imagem base endurecida (RT-09)
-│   ├── els/                # Elasticsearch
-│   ├── lgs/                # Logstash
-│   └── ...                 # Demais serviços
-├── ops/                    # Scripts de Operação e Build
-│   ├── build-all.sh        # Orquestrador de build determinístico
-│   ├── stack-up.ps1        # Entrypoint para homologação (Windows)
-│   └── validate-build.sh   # Validador de contrato arquitetural
-├── security/               # Governança e Trust Registry
-│   └── trust/              # Hashes SHA256 de integridade
-└── docker-compose.yml      # Orquestração principal
+### Kubernetes (Cloud / Cluster)
+```bash
+kubectl apply -f deploy/kubernetes/namespaces/
+kubectl apply -f deploy/kubernetes/elasticsearch/
+kubectl apply -f deploy/kubernetes/logstash/
+kubectl apply -f deploy/kubernetes/kibana/
+kubectl apply -f deploy/kubernetes/wazuh/
+kubectl apply -f deploy/kubernetes/elasticflow/
+kubectl apply -f deploy/kubernetes/ingress/
 ```
 
----
+## Estrutura do Repositório
+- `/deploy/docker`: Orquestração via Docker Compose.
+- `/deploy/kubernetes`: Manifestos para orquestração em cluster.
+- `/deploy/nginx`: Configurações do Reverse Proxy.
+- `/docs`: Documentação técnica detalhada (Arquitetura, HA, Segurança).
+- `/docker`: Definições de imagens customizadas e configurações de serviço.
+- `/certs`: Certificados e infraestrutura de PKI.
 
-## 4. Fluxo de Build e Run
-
-### A. Linux (Produção)
-1. Clone o repositório.
-2. Prepare o ambiente: `cp .env.example .env` (edite as senhas).
-3. Execute o build determinístico:
-   ```bash
-   bash ops/build-all.sh
-   ```
-4. Inicie a stack:
-   ```bash
-   docker compose up -d
-   ```
-
-### B. Docker Desktop (Homologação)
-Utilize o Runtime Gate para garantir que sua homologação é fiel à arquitetura:
-```powershell
-.\ops\stack-up.ps1
-```
+## Segurança
+- Todos os endpoints expostos via HTTPS.
+- Backend isolado em redes privadas (`elk_net`, `wazuh_net`).
+- Usuários não-root (10001:10001) para execução de containers.
+- Certificados TLS em toda a comunicação interna.
 
 ---
-
-## 5. Pipeline CI/CD e Publicação
-
-A **RSD-STACK** utiliza um fluxo de entrega contínua (CI/CD) rigoroso:
-
-1. **Build**: Executado em runners Linux nativos.
-2. **Lint & Security**: Validação via `ops/validate-build.sh` (RT-11A).
-3. **Integridade**: Verificação de hashes SHA256 (RT-12).
-4. **Push**: Imagens são publicadas no Docker Hub (`rsd/`) apenas se todos os gates passarem.
-
-## 6. Política de Versionamento
-
-- **Semântico (SemVer)**: `vMAJOR.MINOR.PATCH` (ex: `v1.0.0`).
-- **Imutabilidade**: Tags publicadas no Docker Hub nunca são sobrescritas.
-- **Vínculo**: Cada release no GitHub possui os hashes de integridade correspondentes às imagens publicadas.
-
-## 7. Governança e Contratos Arquiteturais
-
-A stack é governada por contratos técnicos rígidos, documentados através de **Relatórios Técnicos (RTs)**:
-
-- **[RT-09](RT-09.md)**: Contrato Arquitetural (Regras de Ouro).
-- **[RT-11](RT-11.md)**: Garantia de Build Determinístico.
-- **[RT-12](RT-12.md)**: Governança de Integridade.
-- **[RT-15](RT-15.md)**: Validação Final Pré-Publicação.
-
----
-**Desenvolvido por: rsdenck - Ranlens Denck**
+**Versão:** v2.0.0
+**Mantenedor:** RSD Team

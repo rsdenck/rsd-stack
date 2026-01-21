@@ -1,0 +1,271 @@
+name: rsd-stack
+
+services:
+  # --- ELK STACK (CLUSTER HA) ---
+  els-nd01:
+    image: rdenck/els:${RSD_VERSION:-v1.0.0}
+    container_name: els-nd01
+    user: "10001:10001"
+    environment:
+      - node.name=els-nd01
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    volumes:
+      - els_data_01:/opt/rsd/data
+      - ../../docker/els/config/elasticsearch.yml:/opt/rsd/config/elasticsearch.yml:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+      - ../../certs/els:/opt/rsd/config/certs/els:ro
+    networks:
+      elk_net:
+        aliases: [rsd-els]
+      mgmt_net:
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -s -k -u elastic:$$ELASTIC_PASSWORD https://localhost:9200/_cluster/health | grep -q '\"status\":\"\\(green\\|yellow\\)\"'"]
+      interval: 20s
+      timeout: 10s
+      retries: 10
+
+  els-nd02:
+    image: rdenck/els:${RSD_VERSION:-v1.0.0}
+    container_name: els-nd02
+    user: "10001:10001"
+    environment:
+      - node.name=els-nd02
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    volumes:
+      - els_data_02:/opt/rsd/data
+      - ../../docker/els/config/elasticsearch.yml:/opt/rsd/config/elasticsearch.yml:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+      - ../../certs/els:/opt/rsd/config/certs/els:ro
+    networks:
+      elk_net:
+        aliases: [rsd-els]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
+
+  els-nd03:
+    image: rdenck/els:${RSD_VERSION:-v1.0.0}
+    container_name: els-nd03
+    user: "10001:10001"
+    environment:
+      - node.name=els-nd03
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - ES_JAVA_OPTS=-Xms1g -Xmx1g
+    volumes:
+      - els_data_03:/opt/rsd/data
+      - ../../docker/els/config/elasticsearch.yml:/opt/rsd/config/elasticsearch.yml:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+      - ../../certs/els:/opt/rsd/config/certs/els:ro
+    networks:
+      elk_net:
+        aliases: [rsd-els]
+    ulimits:
+      memlock:
+        soft: -1
+        hard: -1
+    restart: unless-stopped
+
+  lgs-pl01:
+    image: rdenck/lgs:${RSD_VERSION:-v1.0.0}
+    container_name: lgs-pl01
+    user: "10001:10001"
+    command: ["-f", "/opt/rsd/pipeline/logstash.conf"]
+    depends_on:
+      els-nd01:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - lgs_cfg_01:/opt/rsd/data
+      - ../../docker/lgs/config/logstash.conf:/opt/rsd/pipeline/logstash.conf:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+    networks:
+      - elk_net
+    restart: unless-stopped
+
+  lgs-pl02:
+    image: rdenck/lgs:${RSD_VERSION:-v1.0.0}
+    container_name: lgs-pl02
+    user: "10001:10001"
+    command: ["-f", "/opt/rsd/pipeline/logstash.conf"]
+    depends_on:
+      els-nd01:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - lgs_cfg_02:/opt/rsd/data
+      - ../../docker/lgs/config/logstash.conf:/opt/rsd/pipeline/logstash.conf:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+    networks:
+      - elk_net
+    restart: unless-stopped
+
+  kbn-ui01:
+    image: rdenck/kbn:${RSD_VERSION:-v1.0.0}
+    container_name: kbn-ui01
+    user: "10001:10001"
+    depends_on:
+      els-nd01:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    volumes:
+      - kbn_data_01:/opt/rsd/data
+      - ../../docker/kbn/config/kibana.yml:/opt/rsd/config/kibana.yml:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+      - ../../certs/kbn:/opt/rsd/config/certs/kbn:ro
+    networks:
+      - elk_net
+      - mgmt_net
+    restart: unless-stopped
+
+  # --- WAZUH STACK (HA REAL) ---
+  wzh-idx01:
+    image: rdenck/els:${RSD_VERSION:-v1.0.0}
+    container_name: wzh-idx01
+    user: "10001:10001"
+    environment:
+      - node.name=wzh-idx01
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - wzh_idx_01:/opt/rsd/data
+      - ../../docker/els/config/elasticsearch.yml:/opt/rsd/config/elasticsearch.yml:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+      - ../../certs/els:/opt/rsd/config/certs/els:ro
+    networks:
+      wazuh_net:
+        aliases: [wazuh-indexer]
+    restart: unless-stopped
+
+  wzh-idx02:
+    image: rdenck/els:${RSD_VERSION:-v1.0.0}
+    container_name: wzh-idx02
+    user: "10001:10001"
+    environment:
+      - node.name=wzh-idx02
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    volumes:
+      - wzh_idx_02:/opt/rsd/data
+      - ../../docker/els/config/elasticsearch.yml:/opt/rsd/config/elasticsearch.yml:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+      - ../../certs/els:/opt/rsd/config/certs/els:ro
+    networks:
+      wazuh_net:
+        aliases: [wazuh-indexer]
+    restart: unless-stopped
+
+  wzh-mgr01:
+    image: rdenck/wzh:${RSD_VERSION:-v1.0.0}
+    container_name: wzh-mgr01
+    user: "root"
+    cap_add: [SETUID, SETGID]
+    depends_on:
+      wzh-idx01:
+        condition: service_started
+    volumes:
+      - wzh_mgr_01:/var/ossec/data
+      - ../../certs/ca:/var/ossec/etc/certs/ca:ro
+    networks:
+      - wazuh_net
+      - mgmt_net
+    restart: unless-stopped
+
+  wzh-mgr02:
+    image: rdenck/wzh:${RSD_VERSION:-v1.0.0}
+    container_name: wzh-mgr02
+    user: "root"
+    cap_add: [SETUID, SETGID]
+    depends_on:
+      wzh-idx01:
+        condition: service_started
+    volumes:
+      - wzh_mgr_02:/var/ossec/data
+      - ../../certs/ca:/var/ossec/etc/certs/ca:ro
+    networks:
+      - wazuh_net
+      - mgmt_net
+    restart: unless-stopped
+
+  # --- ELASTICFLOW STACK ---
+  efw-col01:
+    image: rdenck/efw:${RSD_VERSION:-v1.0.0}
+    container_name: efw-col01
+    network_mode: host
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - EF_LICENSE_ACCEPTED=true
+    restart: unless-stopped
+
+  efw-lgs01:
+    image: rdenck/efw:${RSD_VERSION:-v1.0.0}
+    container_name: efw-lgs01
+    depends_on:
+      els-nd01:
+        condition: service_healthy
+    networks:
+      - elk_net
+    restart: unless-stopped
+
+  efw-kbn01:
+    image: rdenck/kbn:${RSD_VERSION:-v1.0.0}
+    container_name: efw-kbn01
+    depends_on:
+      els-nd01:
+        condition: service_healthy
+    environment:
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+      - KIBANA_PASSWORD=${KIBANA_PASSWORD}
+    volumes:
+      - efw_kbn_data:/opt/rsd/data
+      - ../../docker/kbn/config/kibana.yml:/opt/rsd/config/kibana.yml:ro
+      - ../../certs/ca:/opt/rsd/config/certs/ca:ro
+    networks:
+      - elk_net
+      - mgmt_net
+    restart: unless-stopped
+
+  # --- NGINX REVERSE PROXY ---
+  rsd-proxy:
+    image: nginx:1.25-alpine
+    container_name: rsd-proxy
+    ports:
+      - "443:443"
+    volumes:
+      - ../../docker/nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ../../docker/nginx/conf.d:/etc/nginx/conf.d:ro
+      - ../../certs/nginx:/etc/nginx/certs:ro
+    networks:
+      - mgmt_net
+    restart: unless-stopped
+
+networks:
+  elk_net:
+    driver: bridge
+  wazuh_net:
+    driver: bridge
+  mgmt_net:
+    driver: bridge
+
+volumes:
+  els_data_01:
+  els_data_02:
+  els_data_03:
+  lgs_cfg_01:
+  lgs_cfg_02:
+  kbn_data_01:
+  wzh_idx_01:
+  wzh_idx_02:
+  wzh_mgr_01:
+  wzh_mgr_02:
+  efw_kbn_data:

@@ -16,15 +16,15 @@ echo -e "RSD-STACK :: SOVEREIGN BUILD PROCESS (Version: $VERSION)"
 echo -e "################################################################${NC}"
 
 # 1. Build da Base Image (Fundamental)
-echo -e "\n[1/6] Building rsd/base-runtime:12..."
-docker build -t rsd/base-runtime:12 docker/base-runtime/
+echo -e "\n[1/6] Building rdenck/base-runtime:12..."
+docker build -t rdenck/base-runtime:12 docker/base-runtime/
 
 # 2. Build dos serviços (Dependem da base-runtime)
 SERVICES=("els" "lgs" "kbn" "wzh" "efw")
 COUNT=2
 for SVC in "${SERVICES[@]}"; do
-    echo -e "\n[$COUNT/6] Building rsd/${SVC}:${VERSION}..."
-    docker build -t "rsd/${SVC}:${VERSION}" "docker/${SVC}/"
+    echo -e "\n[$COUNT/6] Building rdenck/${SVC}:${VERSION}..."
+    docker build -t "rdenck/${SVC}:${VERSION}" "docker/${SVC}/"
     COUNT=$((COUNT+1))
 done
 

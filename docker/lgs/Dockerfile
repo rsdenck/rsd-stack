@@ -1,15 +1,15 @@
 ###############################################################################
-# RSD-STACK :: rsd/lgs
+# RSD-STACK :: rdenck/lgs
 # Logstash Hardened - Debian Based
 ###############################################################################
 
 # Stage 1: Builder
-FROM docker.elastic.co/logstash/logstash:8.13.4@sha256:5664177599388147d2b45e751859c0490f23075c3f309d949216f46142750e38 AS builder
+FROM docker.elastic.co/logstash/logstash:8.13.4@sha256:096bb59d75d886c6de299b651c41af697a960559c1b90d0ba3652b60b6ac4007 AS builder
 
 # Stage 2: Runtime
-FROM rsd/base-runtime:12
+FROM rdenck/base-runtime:12
 
-LABEL org.opencontainers.image.title="rsd/lgs"
+LABEL org.opencontainers.image.title="rdenck/lgs"
 LABEL org.opencontainers.image.version="8.13.4"
 
 USER root

@@ -1,4 +1,4 @@
-# RSD-STACK :: Elastiflow Collector (rsd/efw)
+# RSD-STACK :: Elastiflow Collector (rdenck/efw)
 
 Imagem endurecida do Elastiflow Collector para a RSD-STACK.
 

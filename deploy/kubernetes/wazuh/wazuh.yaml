@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: wzh-idx
+  namespace: wazuh
+spec:
+  serviceName: "wazuh-indexer"
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wazuh-indexer
+  template:
+    metadata:
+      labels:
+        app: wazuh-indexer
+    spec:
+      containers:
+      - name: indexer
+        image: rdenck/els:v1.0.0
+        volumeMounts:
+        - name: data
+          mountPath: /opt/rsd/data
+  volumeClaimTemplates:
+  - metadata:
+      name: data
+    spec:
+      accessModes: [ "ReadWriteOnce" ]
+      resources:
+        requests:
+          storage: 50Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wzh-mgr
+  namespace: wazuh
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: wazuh-manager
+  template:
+    metadata:
+      labels:
+        app: wazuh-manager
+    spec:
+      containers:
+      - name: manager
+        image: rdenck/wzh:v1.0.0
+        securityContext:
+          capabilities:
+            add: ["SETUID", "SETGID"]
+        volumeMounts:
+        - name: data
+          mountPath: /var/ossec/data
+      volumes:
+      - name: data
+        persistentVolumeClaim:
+          claimName: wzh-mgr-pvc

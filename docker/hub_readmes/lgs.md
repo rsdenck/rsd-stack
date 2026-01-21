@@ -1,4 +1,4 @@
-# RSD-STACK :: Logstash (rsd/lgs)
+# RSD-STACK :: Logstash (rdenck/lgs)
 
 Imagem endurecida do Logstash para a RSD-STACK.
 

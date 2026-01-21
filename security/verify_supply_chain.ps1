@@ -9,7 +9,7 @@ Write-Host "[SUPPLY CHAIN] Iniciando validação criptográfica de imagens..." -
 $Success = $true
 
 foreach ($Svc in $Services) {
-    Write-Host "Validando rsd/$Svc... " -NoNewline
+    Write-Host "Validando rdenck/$Svc... " -NoNewline
     
     # 1. Obter Hash esperado do Trust Registry
     $RegistryContent = Get-Content $TrustRegistry
@@ -22,7 +22,7 @@ foreach ($Svc in $Services) {
     $ExpectedHash = $ExpectedHashLine.Split(":")[1].Trim()
 
     # 2. Obter Digest real da imagem local
-    $ImageName = "rsd/${Svc}:v1.0.0"
+    $ImageName = "rdenck/${Svc}:v1.0.0"
     $Digest = docker inspect --format='{{index .RepoDigests 0}}' $ImageName 2>$null
     
     if (-not $Digest) {

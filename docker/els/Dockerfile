@@ -1,15 +1,15 @@
 ###############################################################################
-# RSD-STACK :: rsd/els
+# RSD-STACK :: rdenck/els
 # Elasticsearch Hardened - Debian Based
 ###############################################################################
 
 # Stage 1: Builder
-FROM docker.elastic.co/elasticsearch/elasticsearch:8.13.4@sha256:9825c856b5157d1d2c44923f8bda22f84ffe2ccd04a980f4da22c1976202e870 AS builder
+FROM docker.elastic.co/elasticsearch/elasticsearch:8.13.4@sha256:dfd318b417be1356d9c7fdd6a5577c8a45553ac9d34354929a416c69c85daa9f AS builder
 
 # Stage 2: Runtime
-FROM rsd/base-runtime:12
+FROM rdenck/base-runtime:12
 
-LABEL org.opencontainers.image.title="rsd/els"
+LABEL org.opencontainers.image.title="rdenck/els"
 LABEL org.opencontainers.image.version="8.13.4"
 
 USER root

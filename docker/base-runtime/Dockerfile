@@ -1,9 +1,9 @@
 ###############################################################################
-# RSD-STACK :: rsd/base-runtime
+# RSD-STACK :: rdenck/base-runtime
 # Debian 12 Hardened Base Image
 ###############################################################################
 
-FROM debian:12-slim@sha256:7f46571599388147d2b45e751859c0490f23075c3f309d949216f46142750e38
+FROM debian:12-slim@sha256:56ff6d36d4eb3db13a741b342ec466f121480b5edded42e4b7ee850ce7a418ee
 
 ENV RSD_BASE=/opt/rsd
 ENV TZ=UTC

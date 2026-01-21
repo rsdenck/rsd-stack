@@ -1,15 +1,15 @@
 ###############################################################################
-# RSD-STACK :: rsd/kbn
+# RSD-STACK :: rdenck/kbn
 # Kibana Hardened - Debian Based
 ###############################################################################
 
 # Stage 1: Builder
-FROM docker.elastic.co/kibana/kibana:8.13.4@sha256:6e01a97d748f323869911e860133c914d7c04085526364537367672223727272 AS builder
+FROM docker.elastic.co/kibana/kibana:8.13.4@sha256:aa596f0f8eac0529b4275128699db835e1d839d60ac5af05e3f3a1764d52ae79 AS builder
 
 # Stage 2: Runtime
-FROM rsd/base-runtime:12
+FROM rdenck/base-runtime:12
 
-LABEL org.opencontainers.image.title="rsd/kbn"
+LABEL org.opencontainers.image.title="rdenck/kbn"
 LABEL org.opencontainers.image.version="8.13.4"
 
 USER root

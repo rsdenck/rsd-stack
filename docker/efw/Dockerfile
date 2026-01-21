@@ -1,10 +1,10 @@
 ###############################################################################
-# RSD-STACK :: rsd/efw
+# RSD-STACK :: rdenck/efw
 # ElasticFlow Hardened - Debian Based
 ###############################################################################
 
 # Stage 1: Builder
-FROM debian:12-slim@sha256:7f46571599388147d2b45e751859c0490f23075c3f309d949216f46142750e38 AS builder
+FROM debian:12-slim@sha256:56ff6d36d4eb3db13a741b342ec466f121480b5edded42e4b7ee850ce7a418ee AS builder
 
 ARG EFW_VER=7.7.2
 RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certificates && \
@@ -13,15 +13,14 @@ RUN apt-get update && apt-get install -y --no-install-recommends wget ca-certifi
     dpkg-deb -x flow-collector_${EFW_VER}_linux_amd64.deb /tmp/extract
 
 # Stage 2: Runtime
-FROM rsd/base-runtime:12
+FROM rdenck/base-runtime:12
 
-LABEL org.opencontainers.image.title="rsd/efw"
+LABEL org.opencontainers.image.title="rdenck/efw"
 LABEL org.opencontainers.image.version="7.7.2"
 
 USER root
 
-# Copia binários do estágio builder para o path padronizado
-COPY --from=builder /tmp/extract/usr/bin/flowcoll /opt/rsd/bin/flowcoll
+COPY --from=builder /tmp/extract/usr/share/elastiflow/bin/flowcoll /opt/rsd/bin/flowcoll
 
 # Garante permissões
 RUN chown -R rsd:rsd /opt/rsd && \

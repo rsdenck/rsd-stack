@@ -1,4 +1,4 @@
-# RSD-STACK :: Elasticsearch (rsd/els)
+# RSD-STACK :: Elasticsearch (rdenck/els)
 
 Imagem endurecida do Elasticsearch para a RSD-STACK.
 

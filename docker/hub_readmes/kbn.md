@@ -1,4 +1,4 @@
-# RSD-STACK :: Kibana (rsd/kbn)
+# RSD-STACK :: Kibana (rdenck/kbn)
 
 Imagem endurecida do Kibana para a RSD-STACK.
 

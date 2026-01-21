@@ -1,4 +1,4 @@
-# RSD-STACK :: Wazuh Manager (rsd/wzh)
+# RSD-STACK :: Wazuh Manager (rdenck/wzh)
 
 Imagem endurecida do Wazuh Manager para a RSD-STACK.
 

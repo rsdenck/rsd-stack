@@ -18,7 +18,7 @@ Se qualquer verificação falhar, o deploy deve ser abortado imediatamente.
 - O ambiente utiliza **Keyless Signing**. A confiança é baseada na identidade do workflow do GitHub Actions.
 - Verificação manual pode ser feita via:
   ```bash
-  cosign verify ghcr.io/rsdenck/rsd-stack/rsd/<service>:<tag> \
+21→  cosign verify rdenck/<service>:<tag> \
     --certificate-identity-regexp https://github.com/rsdenck/rsd-stack/.github/workflows/docker-build.yml \
     --certificate-oidc-issuer https://token.actions.githubusercontent.com
   ```

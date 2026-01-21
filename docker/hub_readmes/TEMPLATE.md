@@ -6,7 +6,7 @@ Esta imagem faz parte da **RSD-STACK**, uma solução de Observabilidade e Segur
 Esta imagem foi projetada para funcionar exclusivamente dentro da orquestração da **RSD-STACK**. O uso isolado não é suportado e pode violar os controles de segurança e governança da stack.
 
 ## Sobre o Serviço
-- **Base Image**: `rsd/base-runtime:12` (Debian 12 Hardened)
+-9→- **Base Image**: `rdenck/base-runtime:12` (Debian 12 Hardened)
 - **Init System**: `tini` (PID 1)
 - **Segurança**: Usuário não-root (UID 10001), `cap_drop: ALL`.
 
